@@ -1,73 +1,79 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Stock Data</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .controls { margin-bottom: 20px; display: flex; justify-content: space-between; }
+        .pagination { margin-top: 20px; }
+        .pagination a { margin: 0 5px; text-decoration: none; }
+        .search-form { display: inline-block; }
+        .add-link { text-align: right; }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <h1 class="mb-4">Stock Data</h1>
 
-        <!-- Search Form -->
-        <form method="get" action="{{ url_for('index') }}" class="mb-3">
-            <div class="input-group">
-                <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search...">
-                <button type="submit" class="btn btn-primary">Search</button>
-            </div>
-        </form>
+    <h1>Stock Data</h1>
 
-        <a href="{{ url_for('add') }}" class="btn btn-success mb-3">Add New Stock</a>
-
-        <table class="table table-striped table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    {% for col in columns %}
-                        <th>
-                            <a href="{{ url_for('index', sort_by=col, sort_order='asc' if sort_by != col or sort_order == 'desc' else 'desc', search=search_query, page=page) }}" class="text-white text-decoration-none">
-                                {{ col }}
-                                {% if sort_by == col %}
-                                    {{ '&#9650;' if sort_order == 'asc' else '&#9660;' }}
-                                {% endif %}
-                            </a>
-                        </th>
-                    {% endfor %}
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for record in records %}
-                <tr>
-                    {% for col in columns %}
-                    <td>{{ record[col] }}</td>
-                    {% endfor %}
-                    <td>
-                        <a href="/edit/{{ record['id'] }}" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="/delete/{{ record['id'] }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this item?')">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- Pagination -->
-        <nav>
-            <ul class="pagination">
-                {% if page > 1 %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('index', page=page-1, sort_by=sort_by, sort_order=sort_order, search=search_query) }}">Previous</a>
-                    </li>
-                {% endif %}
-                <li class="page-item disabled"><span class="page-link">Page {{ page }} of {{ total_pages }}</span></li>
-                {% if page < total_pages %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('index', page=page+1, sort_by=sort_by, sort_order=sort_order, search=search_query) }}">Next</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
+    <div class="controls">
+        <div class="search-form">
+            <form method="get" action="{{ url_for('index') }}">
+                <input type="text" name="search" placeholder="Search..." value="{{ search_query or '' }}">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div class="add-link">
+            <a href="{{ url_for('add') }}">Add New Record</a>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <table>
+        <thead>
+            <tr>
+                {% for col in columns %}
+                <th>
+                    <a href="{{ url_for('index', sort_by=col, sort_order='asc' if sort_by != col or sort_order == 'desc' else 'desc', search=search_query) }}">
+                        {{ col }}
+                        {% if sort_by == col %}
+                            {{ '&#9650;' if sort_order == 'asc' else '&#9660;' }}
+                        {% endif %}
+                    </a>
+                </th>
+                {% endfor %}
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                {% for col in columns %}
+                <td>{{ record[col] }}</td>
+                {% endfor %}
+                <td>
+                    <a href="{{ url_for('edit', id=record.id) }}">Edit</a>
+                    <a href="{{ url_for('delete', id=record.id) }}" onclick="return confirm('Are you sure?')">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        {% if page > 1 %}
+            <a href="{{ url_for('index', page=page-1, sort_by=sort_by, sort_order=sort_order, search=search_query) }}">Previous</a>
+        {% endif %}
+
+        <span>Page {{ page }} of {{ total_pages }}</span>
+
+        {% if page < total_pages %}
+            <a href="{{ url_for('index', page=page+1, sort_by=sort_by, sort_order=sort_order, search=search_query) }}">Next</a>
+        {% endif %}
+    </div>
+
 </body>
 </html>
